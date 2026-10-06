@@ -1,0 +1,1 @@
+conda env create -f /media/s0433/Elements/torch310_env.yml

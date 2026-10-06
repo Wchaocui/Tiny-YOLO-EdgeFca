@@ -1,0 +1,62 @@
+nc: 11  # number of classes
+scales:
+  n: [1.0, 1.0, 576]
+
+backbone:
+  - [ -1, 1, mn_conv, [ 32, 3, 2,"SI" ] ]   #0
+  - [ -1, 1, mn_conv, [ 32, 1, 1,"SI" ] ]   #1
+  - [ -1, 1, mn_conv, [ 32, 3, 2, "SI" ] ]  #2-P1;P2/4
+  - [ -1, 1, mn_conv, [ 32, 1, 1, "SI" ] ]  #3-P2;P2
+  - [ -1, 1, mn_conv, [ 96, 3, 2, "SI" ] ]  #4-P2;P3/8
+  - [ -1, 1, mn_conv, [ 64, 1, 1, "SI" ] ]  #5-P3;P3--
+  - [-1, 1, EdgeFcaV2, [64, 80]]    #6 dct_h=7, topk=8,这里多加一层
+
+  - [ -1, 1, ExtraDW, [96, 5, 192, True, "SI", 2]]  # P3;P4/16
+  - [ -1, 1, InvertedBottleneck, [96, 3, 192, True, "SI", 1]]  # P4;P4
+  - [ -1, 1, InvertedBottleneck, [96, 3, 192, True, "SI", 1]]  # P4;P4
+  - [ -1, 1, InvertedBottleneck, [96, 3, 192, True, "SI", 1]]  # P4;P4
+  - [ -1, 1, InvertedBottleneck, [96, 3, 192, True, "SI", 1]]  # P4;P4
+  - [ -1, 1, Conv_NEXT, [96, 3, 384, True, "SI", 1]] #11 P4;P4--
+  - [-1, 1, EdgeFcaV2, [96, 40]]    #13 dct_h=7, topk=8,这里多加一层
+
+  - [ -1, 1, ExtraDW, [ 128, 3, 576, True, "SI", 2]]  # P4;P5/32
+  - [ -1, 1, ExtraDW, [ 128, 5, 512, True, "SI", 1 ]] # P5;P5
+  - [-1, 1, InvertedBottleneck, [128, 5, 512, True, "SI", 1]]  #14-P5;P5
+  - [-1, 1, InvertedBottleneck, [128, 5, 384, True, "SI", 1]]  #15 P5;P5
+  - [-1, 1, InvertedBottleneck, [128, 3, 512, True, "SI", 1]]  #16 P5;P5
+  - [-1, 1, InvertedBottleneck, [128, 3, 512, True, "SI", 1]]  #17 P5;P5
+
+  - [-1, 1, TOPKSPP, [96, 5]]          #18-P5;P5--
+  - [-1, 1, EdgeFcaV2, [96, 20]]    #21-P5; 替换C2PSA，dct_h=7, topk=8,其他与1相同
+  # 去掉原来的C2PSA
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 13], 1, Concat, [1]]  # cat backbone P4
+
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 96, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]] #26--
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 6], 1, Concat, [1]]  # cat backbone P3
+  - [-1, 1, MobileNetV3_BLOCK, [32, 3, 128, True, "SI", 1, False]]
+  - [-1, 1, MobileNetV3_BLOCK, [32, 3, 64, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [32, 3, 64, True, "SI", 1]] #31-P3/SMALL
+  # 去掉 Head中的 EdgeFcaLayer，保持轻量
+
+  - [-1, 1, mn_conv, [64, 3, 2, "SI"]]
+  - [[-1, 26], 1, Concat, [1]]  # cat head P4
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]] #36-P4/MEDIUM
+  # 去掉 Head中的 EdgeFcaLayer
+
+  - [-1, 1, mn_conv, [96, 3, 2, "SI"]]
+  - [[-1, 21], 1, Concat, [1]]  # cat head P5
+
+  - [-1, 1, MobileNetV3_BLOCK, [96, 5, 192, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [96, 5, 192, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [96, 5, 192, True, "SI", 1]] #41-P5/LARGE
+
+  - [[31, 36, 41], 1, Detect, [nc]]  # Detect(P3, P4, P5)

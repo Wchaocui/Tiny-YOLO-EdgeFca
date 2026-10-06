@@ -1,0 +1,61 @@
+nc: 11  # number of classes
+scales:
+  # [depth, width, max_channels]
+  n: [1.0, 1.0, 576]
+
+# LeYOLO Nano backbone
+backbone:
+  # [from, repeats, module, args]
+  - [ -1, 1, mn_conv, [16, 3, 2, "SI"]]  #0-P0;P1/2
+  - [ -1, 1, mn_conv, [16, 1, 1, "SI"]]  #1-P1;P1
+  - [ -1, 1, mn_conv, [32, 3, 2, "SI"]]  #2-P1;P2/4
+  - [ -1, 1, mn_conv, [32, 1, 1, "SI"]]  #3-P2;P2
+  - [ -1, 1, mn_conv, [64, 3, 2, "SI"]]  #4-P2;P3/8
+  - [ -1, 1, mn_conv, [64, 1, 1, "SI"]]  #5-P3;P3
+
+  - [ -1, 1, ExtraDW, [64, 5, 128, True, "SI", 2]]  # P3;P4/16
+  - [ -1, 1, InvertedBottleneck, [64, 3, 128, True, "SI", 1]]  # P4;P4
+  - [ -1, 1, InvertedBottleneck, [64, 3, 128, True, "SI", 1]]  # P4;P4
+  - [ -1, 1, InvertedBottleneck, [64, 3, 128, True, "SI", 1]]  # P4;P4
+  - [ -1, 1, Conv_NEXT, [96, 3, 192, True, "SI", 1]] #10 P4;P4
+
+
+  - [ -1, 1, ExtraDW, [ 96, 3, 576, True, "SI", 2]]  # P4;P5/32
+  - [ -1, 1, ExtraDW, [ 96, 5, 512, True, "SI", 1 ]] # P5;P5
+  - [-1, 1, InvertedBottleneck, [96, 5, 512, True, "SI", 1]]  #-P5;P5
+  - [-1, 1, InvertedBottleneck, [96, 5, 384, True, "SI", 1]]  # P5;P5
+  - [-1, 1, InvertedBottleneck, [96, 3, 512, True, "SI", 1]]  # P5;P5
+
+  - [-1, 1, TOPKSPP, [96, 5]]          #16-P5;P5--
+
+  - [-1, 1 ,C2PSA,[96]]
+
+# LeYOLO Nano head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 10], 1, Concat, [1]]  # cat backbone P4
+
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 96, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]] #22--
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]#
+  - [[-1, 5], 1, Concat, [1]]  # cat backbone P3
+  - [-1, 1, MobileNetV3_BLOCK, [32, 3, 128, True, "SI", 1, False]]
+  - [-1, 1, MobileNetV3_BLOCK, [32, 3, 64, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [32, 3, 64, True, "SI", 1]] #27-P3/SMALL
+##
+  - [-1, 1, mn_conv, [64, 3, 2, "SI"]]
+  - [[-1, 22], 1, Concat, [1]]  # cat head P4
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]] #32-P4/MEDIUM
+
+  - [-1, 1, mn_conv, [96, 3, 2, "SI"]]
+  - [[-1, 17], 1, Concat, [1]]  # cat head P5
+
+  - [-1, 1, MobileNetV3_BLOCK, [96, 5, 192, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [96, 5, 192, True, "SI", 1]]
+  - [-1, 1, MobileNetV3_BLOCK, [96, 5, 192, True, "SI", 1]] #37-P5/LARGE
+
+  - [[27, 32, 37], 1, Detect, [nc]]  # Detect(P3, P4, P5)

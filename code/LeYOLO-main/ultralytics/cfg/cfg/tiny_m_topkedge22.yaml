@@ -1,0 +1,61 @@
+nc: 11  # number of classes
+scales:
+  n: [1.0, 1.0, 576]
+
+# LeYOLO Nano backbone
+backbone:
+  - [ -1, 1, mn_conv, [ 32, 3, 2,"SI" ] ]   #0
+  - [ -1, 1, mn_conv, [ 32, 1, 1,"SI" ] ]   #1
+  - [ -1, 1, mn_conv, [ 32, 3, 2, "SI" ] ]  #2-P1;P2/4
+  - [ -1, 1, mn_conv, [ 32, 1, 1, "SI" ] ]  #3-P2;P2
+  - [ -1, 1, mn_conv, [ 96, 3, 2, "SI" ] ]  #4-P2;P3/8
+  - [ -1, 1, mn_conv, [ 64, 1, 1, "SI" ] ]  #5-P3;P3--
+  - [ -1, 1, ExtraDW, [96, 5, 192, True, "SI", 2]]  #6 P3;P4/16
+  - [ -1, 1, InvertedBottleneck, [96, 3, 192, True, "SI", 1]]  #7 P4;P4
+  - [ -1, 1, InvertedBottleneck, [96, 3, 192, True, "SI", 1]]  #8 P4;P4
+  - [ -1, 1, InvertedBottleneck, [96, 3, 192, True, "SI", 1]]  #9 P4;P4
+  - [ -1, 1, InvertedBottleneck, [96, 3, 192, True, "SI", 1]]  #10 P4;P4
+  - [ -1, 1, Conv_NEXT, [96, 3, 384, True, "SI", 1]] #11 P4;P4--
+
+  - [ -1, 1, ExtraDW, [ 128, 3, 576, True, "SI", 2]]  #12 P4;P5/32
+  - [ -1, 1, ExtraDW, [ 128, 5, 512, True, "SI", 1 ]] #13 P5;P5
+  - [-1, 1, InvertedBottleneck, [128, 5, 512, True, "SI", 1]]  #14-P5;P5
+  - [-1, 1, InvertedBottleneck, [128, 5, 384, True, "SI", 1]]  #15 P5;P5
+  - [-1, 1, InvertedBottleneck, [128, 3, 512, True, "SI", 1]]  #16 P5;P5
+  - [-1, 1, InvertedBottleneck, [128, 3, 512, True, "SI", 1]]  #17 P5;P5
+
+  - [-1, 1, TOPKSPP, [96, 5]]          #18-P5;P5--
+  - [-1, 1, EdgeFcaV2, [96, 20]]     #19-P5; Backbone末端增强
+
+# LeYOLO Nano head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]  #20
+  - [[-1, 11], 1, Concat, [1]]  #21 cat backbone P4
+
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 96, True, "SI", 1]]  #22
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]]  #23
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]] #24--
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]  #25
+  - [-1, 1, EdgeFcaV2, [64, 80]]  #30-P3 Detect前边缘增强（第1层）
+  - [[-1, 5], 1, Concat, [1]]  #26 cat backbone P3
+  - [-1, 1, MobileNetV3_BLOCK, [32, 3, 128, True, "SI", 1, False]]  #27
+  - [-1, 1, MobileNetV3_BLOCK, [32, 3, 64, True, "SI", 1]]  #28
+  - [-1, 1, MobileNetV3_BLOCK, [32, 3, 64, True, "SI", 1]] #29-P3/SMALL
+
+
+  - [-1, 1, mn_conv, [64, 3, 2, "SI"]]  #31
+  - [[-1, 24], 1, Concat, [1]]  #32 cat head P4
+  - [-1, 1, EdgeFcaV2, [128, 40]]  #36-P4 Detect前边缘增强（第2层）
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]]  #33
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]]  #34
+  - [-1, 1, MobileNetV3_BLOCK, [64, 5, 128, True, "SI", 1]] #35-P4/MEDIUM
+
+
+  - [-1, 1, mn_conv, [96, 3, 2, "SI"]]  #37
+  - [[-1, 19], 1, Concat, [1]]  #38 cat backbone P5
+  - [-1, 1, MobileNetV3_BLOCK, [96, 5, 192, True, "SI", 1]]  #39
+  - [-1, 1, MobileNetV3_BLOCK, [96, 5, 192, True, "SI", 1]]  #40
+  - [-1, 1, MobileNetV3_BLOCK, [96, 5, 192, True, "SI", 1]] #41-P5/LARGE
+
+  - [[30, 36, 41], 1, Detect, [nc]]  #42 Detect(P3, P4, P5)
