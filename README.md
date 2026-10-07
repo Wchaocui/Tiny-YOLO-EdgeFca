@@ -13,10 +13,16 @@ code/
   LeYOLO-main/        Custom Ultralytics fork containing the proposed modules
                       (EdgeFca, MMA-SPPF/TOPKSPP, lightweight backbone) and
                       the SLLI screening scripts (dataset_ops/).
+  ultralytics-baselines/  Customized Ultralytics used to train the compared
+                      baselines, including the custom EMV-YOLOv3-tiny,
+                      WTEFNet, and YOLA architectures (config + module code).
   zerodce_baseline/   Zero-DCE + YOLOv11-n two-stage baseline: offline batch
                       enhancement, training/validation scripts, and the
                       official pre-trained DCE-Net weights (Epoch99.pth).
   jetson_bench/       Embedded latency benchmark scripts (NVIDIA Jetson).
+docs/
+  MODEL_VARIANTS.md   Run <-> config-YAML <-> module-combination map for every
+                      model variant and its location in the paper's tables.
 weights/
   paper_final/        Final checkpoints of the paper models (seed 42):
                       Tiny-YOLO-EdgeFca_s.pt, Tiny-YOLO-EdgeFca_n.pt
