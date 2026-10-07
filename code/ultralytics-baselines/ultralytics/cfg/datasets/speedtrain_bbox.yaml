@@ -1,0 +1,9 @@
+path: /home/s0433/Downloads/data/speed/speedtrain_bbox_yolo # dataset root dir
+train: images/train # train images (relative to 'path') 66000 images
+val: images/val # val images (relative to 'path') 11000 images
+test: images/test # test images (optional)hard_im part 2132 images
+
+names:
+
+  0: tango
+

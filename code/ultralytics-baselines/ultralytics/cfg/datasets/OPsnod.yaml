@@ -1,0 +1,18 @@
+path: /home/s0433/local/data/spark-2022-stream-1 # dataset root dir
+train: images/test # train images (relative to 'path') 66000 images
+val: images/test # val images (relative to 'path') 11000 images
+test: images/test # test images (optional) hard_im part 11000 images
+
+names:
+
+  0: smart_1
+  1: cheops
+  2: lisa_pathfinder
+  3: debris
+  4: proba_3_ocs
+  5: proba_3_csc
+  6: soho
+  7: earth_observation_sat_1
+  8: proba_2
+  9: xmm_newton
+  10: double_star # dataset root dir
