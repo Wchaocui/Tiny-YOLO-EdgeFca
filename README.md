@@ -45,6 +45,20 @@ into 10,114 / 2,167 / 2,168 images for train / val / test.
 - Screening scripts: `code/LeYOLO-main/dataset_ops/` (`LLIscreen.py`,
   `LLIscreen_batch.py`).
 
+## Environment
+
+The reference conda environment used for all training/validation experiments
+is provided in `environments/torch310_environment.yml`
+(Python 3.10, PyTorch 2.4.0+cu118, Ultralytics 8.3.49):
+
+```bash
+conda env create -f environments/torch310_environment.yml
+conda activate torch310
+```
+
+`environments/torch310_environment_legacy.yml` is an earlier export kept for
+reference.
+
 ## Training / Validation
 
 All models were trained **from scratch** under a unified protocol
