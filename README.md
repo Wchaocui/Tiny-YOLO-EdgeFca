@@ -23,6 +23,9 @@ code/
 docs/
   MODEL_VARIANTS.md   Run <-> config-YAML <-> module-combination map for every
                       model variant and its location in the paper's tables.
+  REPRODUCTION.md     Step-by-step reproduction guide: environment, dataset,
+                      unified training protocol, exact commands per table,
+                      and expected mean +/- std results.
 weights/
   paper_final/        Final checkpoints of the paper models (seed 42):
                       Tiny-YOLO-EdgeFca_s.pt, Tiny-YOLO-EdgeFca_n.pt

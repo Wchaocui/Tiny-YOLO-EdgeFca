@@ -1,7 +1,7 @@
-path: /hy-tmp/SLLFS # dataset root dir
-train: images/train # train images (relative to 'path') 66000 images
-val: images/val # val images (relative to 'path') 11000 images
-test: images/test # test images (optional)hard_im part 2132 images
+path: /hy-tmp/SLLFS  # <-- EDIT: set to your local SLLI dataset root (unzipped from the Release asset)
+train: images/train # train images (relative to 'path') 10114 images
+val: images/val # val images (relative to 'path') 2167 images
+test: images/test # test images (relative to 'path') 2168 images
 
 names:
 
