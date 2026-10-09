@@ -3,8 +3,8 @@
 Code, pre-trained weights, and the **SLLI** dataset for
 **"Tiny-YOLO-EdgeFca: A Lightweight Framework for Low-Light Space Object Detection"**.
 
-> This repository is currently **private** during peer review. It will be made
-> public upon acceptance.
+> Code, weights, and the SLLI dataset are publicly released to support
+> reproducibility.
 
 ## Repository Structure
 
