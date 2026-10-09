@@ -34,7 +34,10 @@ yolo detect train \
 ```
 
 No pretrained weights are loaded (from-scratch, YAML-only initialization), and
-no per-model tuning is applied. Set the seed inside `train.py` / `main.py` if
+no per-model tuning is applied. The complete hyper-parameter record of every
+training run (the Ultralytics `args.yaml`) is archived in
+`weights/run_configs/<run_name>/args.yaml`, cross-checkable against the
+command above. Set the seed inside `train.py` / `main.py` if
 you prefer the script entry (both set `torch.backends.cudnn.deterministic`).
 
 Validation on the test split:
